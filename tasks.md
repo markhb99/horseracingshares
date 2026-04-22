@@ -1,0 +1,200 @@
+# Build Manifest — horseracingshares.com
+
+> Phased task list. Each task tagged `[OPUS]` or `[SONNET]` for model routing.
+> Check off as you go. The design prompt (Phase 1) will populate the bracketed
+> placeholders with concrete component and page tasks specific to the agreed design.
+
+**Legend**
+- `[OPUS]` = Claude Opus 4.7 — architecture, hard logic, compliance flows, design decisions, gnarly debugging
+- `[SONNET]` = Claude Sonnet 4.6 — component implementation, copy, tests, styling against an agreed spec
+- `[YOU]` = manual / human-only (legal, outreach, payments setup, domain config)
+
+---
+
+## Phase 0 — Foundations (Week 0)
+
+- [ ] `[YOU]` Engage racing-industry lawyer (Addisons or equivalent) for compliance review scope
+- [ ] `[YOU]` Provision: Vercel team, Supabase project, Fly.io account, Stripe account, Resend, Loops, PostHog, Mux, Cloudflare for DNS
+- [ ] `[YOU]` Point horseracingshares.com DNS to Vercel
+- [ ] `[YOU]` Register Google Search Console + Bing Webmaster + set up Plausible/PostHog
+- [ ] `[OPUS]` Initialise Next.js 15 project with TS, Tailwind v4, shadcn/ui, ESLint, Prettier, Husky pre-commit, Vitest, Playwright
+- [ ] `[OPUS]` Set up monorepo structure (apps/web, apps/workers, packages/db, packages/ui) — or argue against if simpler is better
+- [ ] `[OPUS]` Configure Supabase: project, environments (dev/staging/prod), migration tooling (drizzle or supabase migrations), seed data scripts
+- [ ] `[OPUS]` Drop in `CLAUDE.md`, `blueprint.md`, `research-findings.md`, this `tasks.md`, and `.claude/agents/` configs
+- [ ] `[SONNET]` Wire up CI on GitHub Actions: lint, typecheck, test, build on every PR
+
+---
+
+## Phase 1 — Design system (Week 1)
+
+- [ ] `[OPUS]` Run the design prompt in plan mode → produces `design-system.md`
+- [ ] `[OPUS]` Critique own design as "head of product at Inglis" — produces `design-critique.md`
+- [ ] `[OPUS]` Reconcile critique into final `design-system.md` v2
+- [ ] `[YOU]` Review design system, lock decisions, name the brand colors
+- [ ] `[SONNET]` Implement `globals.css` with all design tokens (colors, spacing, radius, shadows, typography scale)
+- [ ] `[SONNET]` Set up Tailwind v4 config with theme tokens mapped to CSS variables
+- [ ] `[SONNET]` Install shadcn/ui base components (button, input, label, form, dialog, sheet, dropdown-menu, select, badge, card, tabs, toast)
+- [ ] `[SONNET]` Implement typography components (H1-H6, Body, Lead, Caption, Mono) with type scale from design system
+- [ ] `[SONNET]` Implement icon system with lucide-react + custom racing icons (silks, horseshoe, finish line) as needed
+- [ ] `[YOU]` Brief photographer for 5 shot-list images per design system §1
+- [ ] `[YOU]` Logo execution by designer (3 directions from design system → 1 chosen)
+
+> **Populated by design phase output:** the design prompt's deliverable #3 (Core Component Inventory) becomes the next ~30 component tasks here, and deliverable #4 (Page Wireframes) becomes Phase 4 page tasks. Don't expand the list now — let Opus produce it from the design plan.
+
+---
+
+## Phase 2 — Data layer & auth (Week 2)
+
+- [ ] `[OPUS]` Schema design: User, Syndicator, Trainer, Horse, Enquiry, SavedSearch, WinnerArchive, ListingTier, Subscription, Payment — final ER diagram in `db/schema.md`
+- [ ] `[OPUS]` Write migrations for all tables + RLS policies + CHECK constraints (esp. the AFSL/PDS active-status guard)
+- [ ] `[OPUS]` Design auth flow: magic link primary, password optional, syndicator vs buyer role separation, session handling in App Router
+- [ ] `[SONNET]` Implement Supabase auth with magic link + role middleware
+- [ ] `[SONNET]` Build `/login`, `/signup`, `/account` shell, role-based redirects
+- [ ] `[OPUS]` Design consent model: marketing opt-in, share-with-partners opt-in, granular and revocable. Schema + UI flow.
+- [ ] `[SONNET]` Implement consent management UI in `/account/preferences`
+- [ ] `[OPUS]` Lead-scoring algorithm spec (recency, viewing depth, enquiry, declared budget, repeat visits) → `db/scoring.md`
+- [ ] `[SONNET]` Implement scoring as a Supabase function or worker, cron-triggered
+- [ ] `[SONNET]` Seed dev DB with 30 realistic test horses across 5 fake syndicators (use the rhownership listings as structural reference, not copy)
+
+---
+
+## Phase 3 — Search & discovery (Week 3)
+
+- [ ] `[OPUS]` Typesense schema: collection design, facet fields, synonym handling (e.g. "Snitzel" sons), typo tolerance config
+- [ ] `[OPUS]` Indexing strategy: real-time on listing change vs nightly rebuild — pick and document
+- [ ] `[SONNET]` Set up Typesense on Fly.io, deploy collection schema, write indexer worker
+- [ ] `[SONNET]` Build `/browse` page: faceted filters (price, share size, age, sex, colour, trainer, sire, dam sire, location, bonus schemes, status), sort options, results grid
+- [ ] `[SONNET]` Filter rail (desktop) + bottom-sheet filters (mobile) per design system
+- [ ] `[SONNET]` HorseCard component with all variants (standard, featured, sold, nearly-full progress)
+- [ ] `[SONNET]` Saved-search creation modal with email-frequency selector
+- [ ] `[OPUS]` Saved-search alert worker: detect new horses matching criteria, queue email
+- [ ] `[SONNET]` Email template for saved-search hits (Resend + React Email)
+
+---
+
+## Phase 4 — Core pages (Week 4)
+
+> Page tasks below are placeholders — replace with the specific page tasks Opus generates in the design plan deliverable #4.
+
+- [ ] `[SONNET]` Homepage per design spec — hero, featured row, trust strip, three-up, winner reel, email capture
+- [ ] `[SONNET]` Horse detail page — gallery, vitals, pedigree tree, bonus schemes, vet status, cost breakdown table, syndicator block, enquiry form
+- [ ] `[OPUS]` Pedigree tree component logic (4 generations, expandable, mobile-collapsible)
+- [ ] `[SONNET]` Pedigree tree visual implementation per Opus spec
+- [ ] `[SONNET]` Enquiry form with full intent capture (share size, budget range, contact preference, prior ownership)
+- [ ] `[OPUS]` Enquiry handling: store on-platform, forward to syndicator within 60s, log forward timestamp, handle failures
+- [ ] `[SONNET]` Syndicator directory `/syndicators` and detail pages `/syndicators/[slug]`
+- [ ] `[SONNET]` Trainer directory `/trainers` and detail pages
+- [ ] `[OPUS]` Sire pages — auto-generated from listings, SEO-optimised, one per active sire
+- [ ] `[SONNET]` Sire page implementation per Opus spec
+
+---
+
+## Phase 5 — Owner's guide & content (Week 5)
+
+- [ ] `[OPUS]` Content architecture: cornerstone vs cluster pages, internal linking strategy, schema.org markup plan
+- [ ] `[SONNET]` `/learn` hub page
+- [ ] `[CONTENT]` Write 15 cornerstone articles per blueprint (cost reality, BOBS/QTIS/VOBIS/MMRS explainers, PDS guide, picking a trainer, raceday experience, prizemoney mechanics, tax basics, glossary, one-per-major-sire)
+- [ ] `[OPUS]` Cost calculator logic: share %, upfront, weekly ongoing, race start estimate → 3-year total, breakeven prizemoney, scenario comparison
+- [ ] `[SONNET]` Cost calculator UI per design spec, with animated sliders and result email-capture
+- [ ] `[SONNET]` Glossary component with anchor links
+- [ ] `[SONNET]` Blog index + individual post layout with related-listings module
+
+---
+
+## Phase 6 — Seller side (Week 6)
+
+- [ ] `[OPUS]` Listing submission flow design: AFSL verification step, PDS upload, photo/video upload, preview, payment, moderation queue
+- [ ] `[OPUS]` AFSL verification approach: manual review v1, ASIC register API or scraper v2 — document the v1 process
+- [ ] `[SONNET]` `/sell/pricing` page with four tiers per blueprint
+- [ ] `[SONNET]` `/sell/submit` multi-step form with autosave drafts
+- [ ] `[SONNET]` Photo/video upload to Supabase Storage + Mux for video
+- [ ] `[OPUS]` Stripe integration for listing fees: products, prices, checkout, webhook handling, invoice generation
+- [ ] `[SONNET]` Stripe checkout flow + success/failure pages
+- [ ] `[SONNET]` Syndicator dashboard `/account/listings` — drafts, active, sold, expired, performance metrics (views, enquiries)
+- [ ] `[OPUS]` Moderation admin: queue, approve, reject with reason, AFSL re-verify trigger
+- [ ] `[SONNET]` Admin moderation UI (separate route group `/admin`, role-gated)
+
+---
+
+## Phase 7 — Buyer dashboard & retention (Week 7)
+
+- [ ] `[SONNET]` `/account` dashboard — saved searches, wishlist, enquiry history, preferences
+- [ ] `[SONNET]` Wishlist add/remove from any HorseCard
+- [ ] `[OPUS]` Email lifecycle: welcome, weekly digest, saved-search hit, wishlist horse update, abandoned enquiry, post-enquiry follow-up
+- [ ] `[CONTENT]` Write all lifecycle email copy in brand voice
+- [ ] `[SONNET]` Implement email templates (React Email) and Loops sequences
+
+---
+
+## Phase 8 — The Regal funnel (Week 7-8, partly hidden)
+
+- [ ] `[OPUS]` Regal-Bloodstock-specific listing flow: same UX surface, internal flag, zero listing fee, priority sort tiebreak
+- [ ] `[OPUS]` Hot-lead matching job: cron every 48h, match buyer profiles to live Regal horses, generate per-rep email queue with full buyer context
+- [ ] `[SONNET]` Internal Regal CRM view at `/admin/regal-leads` — sortable, exportable, with consent status visible
+- [ ] `[YOU]` Brief Regal sales reps on the lead-handling protocol; agree response-time SLA
+- [ ] `[OPUS]` Disclosure copy for `/about` and `/legal` re: Regal ownership relationship — gets lawyer review
+- [ ] `[CONTENT]` Write `/about` page including the disclosure, framed honestly
+
+---
+
+## Phase 9 — Compliance & legal (Week 8)
+
+- [ ] `[YOU]` Submit full site to lawyer for pre-launch review
+- [ ] `[YOU]` Address every flagged item before public launch — no exceptions
+- [ ] `[OPUS]` Implement any structural changes from legal review
+- [ ] `[SONNET]` Privacy policy, terms of service, cookie banner per legal copy
+- [ ] `[OPUS]` Data export + deletion endpoints (Privacy Act compliance)
+- [ ] `[SONNET]` Cookie consent (essential vs analytics vs marketing tiers)
+- [ ] `[OPUS]` Audit RLS policies — every table, every role, written test for each policy
+
+---
+
+## Phase 10 — Pre-launch (Week 9)
+
+- [ ] `[YOU]` Outreach to 40 target syndicators with 90-day-free launch offer
+- [ ] `[YOU]` Sign up first 10 syndicators, onboard, list their first horses
+- [ ] `[OPUS]` Performance audit: Lighthouse 95+ on mobile, LCP <2s, CLS <0.1, INP <200ms — fix what isn't passing
+- [ ] `[SONNET]` Implement structured data: Organization, BreadcrumbList, Product (per horse), Article (per blog post), FAQPage
+- [ ] `[SONNET]` XML sitemap (split: pages, horses, syndicators, trainers, sires, articles)
+- [ ] `[SONNET]` robots.txt, OG images per page (use @vercel/og or static)
+- [ ] `[OPUS]` Set up monitoring: Sentry, uptime checks, Supabase alerts, Stripe webhook failure alerts
+- [ ] `[YOU]` Final security review: env var audit, no service-role keys client-side, RLS policy spot-check
+
+---
+
+## Phase 11 — Soft launch (Week 10)
+
+- [ ] `[YOU]` Private beta to 100 hand-picked invitees from Regal's existing network
+- [ ] `[OPUS]` Triage feedback, prioritise fixes, no scope expansion
+- [ ] `[SONNET]` Ship triaged fixes
+- [ ] `[YOU]` Press outreach: racing.com, Racenet, SEN, Racing Australia, state PRA newsletters
+
+---
+
+## Phase 12 — Public launch & iteration (Week 11-12)
+
+- [ ] `[YOU]` Public launch announcement (Regal newsletter, social, paid Meta + Google)
+- [ ] `[OPUS]` Weekly review of conversion funnel: visitor → registered → saved search → enquiry → hot lead → Regal sale
+- [ ] `[OPUS]` A/B test framework setup (PostHog feature flags + experiments)
+- [ ] `[SONNET]` Run first 3 A/B tests: homepage hero copy, enquiry form length, cost calculator placement on detail page
+
+---
+
+## Soft-launch KPIs (90-day targets)
+
+- 40 active listings
+- 800 registered buyers
+- 150 qualified enquiries
+- 30 hot leads passed to Regal Bloodstock
+- 2 share sales attributable to Regal's matched-email campaign
+
+If any of these are tracking <50% at the 60-day mark, the architect runs a strategy review before more features ship.
+
+---
+
+## Notes for future-you
+
+- Resist feature creep. The owner's guide hub looks small; build it deep before building it wide.
+- The lead database compounds. Every week of operation makes the email list more valuable than the week before. Treat it as the balance sheet.
+- Don't let Regal listings dominate visually. Trust dies fast. The disclosure is your insurance — keep it honest.
+- When in doubt, ask the architect (Opus). When the architect is in doubt, ship a small experiment and read the data.
