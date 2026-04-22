@@ -46,16 +46,16 @@
 
 ## Phase 2 — Data layer & auth (Week 2)
 
-- [ ] `[OPUS]` Schema design: User, Syndicator, Trainer, Horse, Enquiry, SavedSearch, WinnerArchive, ListingTier, Subscription, Payment — final ER diagram in `db/schema.md`
-- [ ] `[OPUS]` Write migrations for all tables + RLS policies + CHECK constraints (esp. the AFSL/PDS active-status guard)
-- [ ] `[OPUS]` Design auth flow: magic link primary, password optional, syndicator vs buyer role separation, session handling in App Router
-- [ ] `[SONNET]` Implement Supabase auth with magic link + role middleware
-- [ ] `[SONNET]` Build `/login`, `/signup`, `/account` shell, role-based redirects
-- [ ] `[OPUS]` Design consent model: marketing opt-in, share-with-partners opt-in, granular and revocable. Schema + UI flow.
-- [ ] `[SONNET]` Implement consent management UI in `/account/preferences`
-- [ ] `[OPUS]` Lead-scoring algorithm spec (recency, viewing depth, enquiry, declared budget, repeat visits) → `db/scoring.md`
-- [ ] `[SONNET]` Implement scoring as a Supabase function or worker, cron-triggered
-- [ ] `[SONNET]` Seed dev DB with 30 realistic test horses across 5 fake syndicators (use the rhownership listings as structural reference, not copy)
+- [x] `[OPUS]` Schema design: User, Syndicator, Trainer, Horse, Enquiry, SavedSearch, WinnerArchive, ListingTier, Subscription, Payment — ER diagram + 18 entities in `docs/db/schema.md`
+- [x] `[OPUS]` Write migrations for all tables + RLS policies + CHECK constraints (esp. the AFSL/PDS active-status guard). *7 timestamped files in `supabase/migrations/`. AFSL gate is a 3-layer defence: BEFORE INSERT/UPDATE trigger on horse + syndicator cascade + admin re-verify trigger.*
+- [x] `[OPUS]` Design auth flow: magic link primary, password optional, syndicator vs buyer role separation, session handling in App Router → `docs/auth.md`
+- [ ] `[SONNET]` Implement Supabase auth with magic link + role middleware *(blocked on Supabase project provisioning)*
+- [ ] `[SONNET]` Build `/login`, `/signup`, `/account` shell, role-based redirects *(scaffolding possible now; live auth blocked on provisioning)*
+- [x] `[OPUS]` Design consent model: marketing opt-in, share-with-partners opt-in, granular and revocable. Schema + UI flow → `docs/consent-model.md` + `consent_ledger` table in schema.md §3.16
+- [ ] `[SONNET]` Implement consent management UI in `/account/preferences` *(scaffolding possible now; live writes blocked on provisioning)*
+- [x] `[OPUS]` Lead-scoring algorithm spec (recency, viewing depth, enquiry, declared budget, repeat visits) → `docs/db/scoring.md`
+- [ ] `[SONNET]` Implement scoring as a Supabase function or worker, cron-triggered *(blocked on Supabase project provisioning)*
+- [ ] `[SONNET]` Seed dev DB with 30 realistic test horses across 5 fake syndicators (use the rhownership listings as structural reference, not copy) *(blocked on Supabase project provisioning)*
 
 ---
 
