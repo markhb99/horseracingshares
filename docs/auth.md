@@ -1,7 +1,7 @@
 # Auth flow — horseracingshares
 
 > **Status:** v1 (2026-04-22). Phase 2 architect spec.
-> **Audience:** the builder implementing `/login`, `/signup`, `/account` shells, Supabase client helpers, middleware, and role-based redirects.
+> **Audience:** the builder implementing `/login`, `/signup`, `/account` shells, Supabase client helpers, the proxy (née middleware — Next.js 16 rename), and role-based redirects.
 > **Scope:** authentication, session handling, role separation. Authorisation (RLS) lives in `docs/db/schema.md` §5.
 
 ---
@@ -120,7 +120,7 @@ lib/supabase/service.ts    createServiceClient — service-role key, server-only
 lib/supabase/middleware.ts refresh session cookie on every request
 ```
 
-The middleware file at `middleware.ts` project root calls through to `lib/supabase/middleware.ts` so the session cookie stays fresh on navigation.
+**Next.js 16 rename: middleware → proxy.** The root file at `proxy.ts` (project root) exports a named `proxy` function and calls through to `lib/supabase/middleware.ts` (kept under the `supabase/` subfolder name for clarity) so the session cookie stays fresh on navigation. Next.js 16 still supports a `middleware.ts` file but emits a deprecation warning — use `proxy.ts`.
 
 ### 3.4 Routes
 
@@ -219,7 +219,7 @@ Middleware short-circuits disallowed paths with a 307 redirect to `/403`.
 ## 5. Session lifecycle
 
 - **Magic link → session:** set by `exchangeCodeForSession`. HttpOnly cookies, 60-day expiry (Supabase default).
-- **Refresh:** middleware calls `supabase.auth.getUser()` on every request, which transparently refreshes if needed.
+- **Refresh:** the proxy calls `supabase.auth.getUser()` on every request, which transparently refreshes if needed.
 - **Logout:** `POST /auth/signout` → `supabase.auth.signOut()` → redirect to `/`.
 - **Expiry:** expired sessions redirect to `/login?next=...` with a flash toast "Your session expired. Please log in again."
 
