@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
+import { cn } from "@/lib/utils";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -39,7 +40,12 @@ export default function RootLayout({
   return (
     <html
       lang="en-AU"
-      className={`${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={cn(
+        "h-full antialiased",
+        fraunces.variable,
+        inter.variable,
+        jetbrainsMono.variable,
+      )}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
