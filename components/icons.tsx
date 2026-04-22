@@ -18,8 +18,14 @@ export const AfslShield = ShieldCheck;
 /**
  * Brand-load-bearing logo mark: 2×2 silks tile.
  * Top-left + bottom-right Midnight, top-right + bottom-left Brass,
- * separated by a 1px charcoal hairline cross. Rendered as CSS grid
+ * separated by a charcoal hairline cross. Rendered as CSS grid
  * (not SVG) so it scales crisply from 16×16 favicon to trackside banner.
+ *
+ * The cross is produced by a charcoal wrapper + a grid-gap: the
+ * quadrants sit on top of the charcoal backdrop and the gap reveals
+ * it as a hairline. Thickness scales with tile size (1px below 40px,
+ * 2px at typical display sizes) so the cross stays visible without
+ * becoming a dark slab on large lockups.
  */
 export function SilksQuadrant({
   size = 32,
@@ -29,23 +35,24 @@ export function SilksQuadrant({
   size?: number;
   className?: string;
 } & Omit<React.HTMLAttributes<HTMLDivElement>, "className">) {
+  const gap = size < 40 ? 1 : 2;
   return (
     <div
       role="img"
       aria-label="Horse Racing Shares"
-      className={cn(
-        "relative grid grid-cols-2 grid-rows-2 overflow-hidden",
-        "after:absolute after:inset-0 after:content-['']",
-        "after:[background:linear-gradient(to_right,transparent_calc(50%-0.5px),var(--color-charcoal)_calc(50%-0.5px),var(--color-charcoal)_calc(50%+0.5px),transparent_calc(50%+0.5px)),linear-gradient(to_bottom,transparent_calc(50%-0.5px),var(--color-charcoal)_calc(50%-0.5px),var(--color-charcoal)_calc(50%+0.5px),transparent_calc(50%+0.5px))]",
-        className,
-      )}
+      className={cn("bg-charcoal overflow-hidden", className)}
       style={{ width: size, height: size }}
       {...props}
     >
-      <span className="bg-midnight" />
-      <span className="bg-brass" />
-      <span className="bg-brass" />
-      <span className="bg-midnight" />
+      <div
+        className="grid h-full w-full grid-cols-2 grid-rows-2"
+        style={{ gap: `${gap}px` }}
+      >
+        <span className="bg-midnight" />
+        <span className="bg-brass" />
+        <span className="bg-brass" />
+        <span className="bg-midnight" />
+      </div>
     </div>
   );
 }
