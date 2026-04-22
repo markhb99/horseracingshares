@@ -149,14 +149,21 @@ CREATE INDEX horse_sire_trgm_idx    ON horse USING gin (sire gin_trgm_ops);
 CREATE INDEX horse_dam_trgm_idx     ON horse USING gin (dam  gin_trgm_ops);
 
 -- ─── horse_trainer (M:N history) ──────────────────────────────
+-- Uses a surrogate PK + a unique index because Postgres PRIMARY KEY
+-- clauses cannot contain function expressions. COALESCE lets us treat
+-- rows with NULL from_date as uniquely identifiable (one "we don't
+-- know when this trainer started" row per horse+trainer pair).
 CREATE TABLE horse_trainer (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   horse_id    UUID NOT NULL REFERENCES horse(id)   ON DELETE CASCADE,
   trainer_id  UUID NOT NULL REFERENCES trainer(id) ON DELETE CASCADE,
   from_date   DATE,
   to_date     DATE,
-  is_current  BOOLEAN NOT NULL DEFAULT true,
-  PRIMARY KEY (horse_id, trainer_id, COALESCE(from_date, '1900-01-01'))
+  is_current  BOOLEAN NOT NULL DEFAULT true
 );
+
+CREATE UNIQUE INDEX horse_trainer_uniq
+  ON horse_trainer (horse_id, trainer_id, COALESCE(from_date, '1900-01-01'::date));
 
 -- ─── share_tier ───────────────────────────────────────────────
 CREATE TABLE share_tier (

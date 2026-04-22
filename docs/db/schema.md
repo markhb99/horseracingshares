@@ -276,14 +276,19 @@ CREATE INDEX horse_dam_trgm_idx    ON horse USING gin (dam gin_trgm_ops);
 Horses may be trained by multiple trainers over their career; we track the history so a horse page can show "previously with X".
 
 ```sql
+-- Surrogate PK + expression unique index — Postgres disallows
+-- function expressions inside PRIMARY KEY clauses.
 CREATE TABLE horse_trainer (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   horse_id    UUID NOT NULL REFERENCES horse(id)   ON DELETE CASCADE,
   trainer_id  UUID NOT NULL REFERENCES trainer(id) ON DELETE CASCADE,
   from_date   DATE,
   to_date     DATE,
-  is_current  BOOLEAN NOT NULL DEFAULT true,
-  PRIMARY KEY (horse_id, trainer_id, COALESCE(from_date, '1900-01-01'))
+  is_current  BOOLEAN NOT NULL DEFAULT true
 );
+
+CREATE UNIQUE INDEX horse_trainer_uniq
+  ON horse_trainer (horse_id, trainer_id, COALESCE(from_date, '1900-01-01'::date));
 ```
 
 ### 3.7 `share_tier`
