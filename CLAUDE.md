@@ -35,7 +35,7 @@ The Regal Bloodstock ownership relationship is disclosed clearly in `/about` and
 
 | Layer | Choice |
 |---|---|
-| Frontend | Next.js 15 (App Router, RSC) + TypeScript |
+| Frontend | Next.js 16 (App Router, RSC, Turbopack dev) + TypeScript |
 | Styling | Tailwind v4 + shadcn/ui |
 | Backend | Next.js API routes + Supabase (Postgres + Auth + Storage + RLS) |
 | Search | Typesense (self-hosted on Fly.io) |
@@ -94,6 +94,9 @@ ASIC + Racing Australia + state principal racing authority rules apply. The plat
 - `design-system.md` — output of the design prompt (created in design phase)
 - `tasks.md` — phased build manifest with [OPUS]/[SONNET] tags
 - `compliance-checklist.md` — pre-launch legal sign-off items
+- `AGENTS.md` — Next.js 16 version-drift guardrail (loaded via @import below)
+
+@AGENTS.md
 
 ---
 

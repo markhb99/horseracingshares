@@ -223,7 +223,7 @@ Voice rules that will live in the builder's `content.md` agent config and in eve
 
 ## 2. Design System Tokens (CSS variables)
 
-Drop this into `apps/web/app/globals.css` at the top of the file. Tailwind v4's `@theme` directive will consume these via `@theme inline`.
+Drop this into `app/globals.css` at the top of the file (flat repo — no `apps/web` nesting). Tailwind v4's `@theme` directive consumes these via `@theme inline`.
 
 ```css
 @layer base {
