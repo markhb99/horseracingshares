@@ -62,14 +62,14 @@
 
 ## Phase 3 — Search & discovery (Week 3)
 
-- [ ] `[OPUS]` Typesense schema: collection design, facet fields, synonym handling (e.g. "Snitzel" sons), typo tolerance config
-- [ ] `[OPUS]` Indexing strategy: real-time on listing change vs nightly rebuild — pick and document
+- [x] `[OPUS]` Typesense schema: collection design, facet fields, synonym handling (e.g. "Snitzel" sons → app-side query rewrite, not synonym), typo tolerance config → `docs/search/typesense-schema.md`
+- [x] `[OPUS]` Indexing strategy: hybrid — outbox table + Fly.io worker (near-real-time) + nightly full rebuild safety net → `docs/search/indexing.md`
 - [ ] `[SONNET]` Set up Typesense on Fly.io, deploy collection schema, write indexer worker
 - [ ] `[SONNET]` Build `/browse` page: faceted filters (price, share size, age, sex, colour, trainer, sire, dam sire, location, bonus schemes, status), sort options, results grid
 - [ ] `[SONNET]` Filter rail (desktop) + bottom-sheet filters (mobile) per design system
 - [ ] `[SONNET]` HorseCard component with all variants (standard, featured, sold, nearly-full progress)
 - [ ] `[SONNET]` Saved-search creation modal with email-frequency selector
-- [ ] `[OPUS]` Saved-search alert worker: detect new horses matching criteria, queue email
+- [x] `[OPUS]` Saved-search alert worker: detect new horses matching criteria, queue email → `docs/search/saved-search.md`
 - [ ] `[SONNET]` Email template for saved-search hits (Resend + React Email)
 
 ---
