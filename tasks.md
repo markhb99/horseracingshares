@@ -67,7 +67,8 @@
 - [ ] `[SONNET]` Set up Typesense on Fly.io, deploy collection schema, write indexer worker
 - [ ] `[SONNET]` Build `/browse` page: faceted filters (price, share size, age, sex, colour, trainer, sire, dam sire, location, bonus schemes, status), sort options, results grid
 - [ ] `[SONNET]` Filter rail (desktop) + bottom-sheet filters (mobile) per design system
-- [ ] `[SONNET]` HorseCard component with all variants (standard, featured, sold, nearly-full progress)
+- [x] `[BUILDER]` HorseCard component with all variants (standard / editorial / compact / sold) + ShareStatusLine atom. Dev showcase at `/cards`. Images placeholder pending Phase 4 Storage wiring.
+- [x] `[BUILDER]` Search libraries: `lib/search/filter-schema.ts`, `filter-to-typesense.ts`, `parse.ts`; Vitest suites covering 27 cases; 3 migrations produced for outbox + view + saved_search_run (pending apply to live DB — needs current DB password).
 - [ ] `[SONNET]` Saved-search creation modal with email-frequency selector
 - [x] `[OPUS]` Saved-search alert worker: detect new horses matching criteria, queue email → `docs/search/saved-search.md`
 - [ ] `[SONNET]` Email template for saved-search hits (Resend + React Email)
