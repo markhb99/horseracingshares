@@ -55,6 +55,7 @@
 - [x] `[SONNET]` Implement consent management UI in `/account/preferences` *(shipped)*
 - [x] `[OPUS]` Lead-scoring algorithm spec (recency, viewing depth, enquiry, declared budget, repeat visits) → `docs/db/scoring.md`
 - [ ] `[SONNET]` Implement scoring as a Supabase function or worker, cron-triggered *(blocked on Supabase project provisioning)*
+- [x] `[BUILDER]` First Vitest tests: lead-scoring formula (pure) + AFSL gate (pglite integration).
 - [x] `[SONNET]` Seed dev DB with 30 realistic test horses across 5 fake syndicators — `supabase/seed.sql` (idempotent), `scripts/seed.ts` runner, `scripts/elevate-user.ts` role-elevation helper. Syndicator dashboard (`app/syndicator/dashboard/page.tsx`) and admin console (`app/admin/page.tsx`) shipped; role-gate helper at `lib/auth/role.ts`.
 
 ---
