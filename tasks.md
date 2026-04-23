@@ -49,13 +49,13 @@
 - [x] `[OPUS]` Schema design: User, Syndicator, Trainer, Horse, Enquiry, SavedSearch, WinnerArchive, ListingTier, Subscription, Payment — ER diagram + 18 entities in `docs/db/schema.md`
 - [x] `[OPUS]` Write migrations for all tables + RLS policies + CHECK constraints (esp. the AFSL/PDS active-status guard). *7 timestamped files in `supabase/migrations/`. AFSL gate is a 3-layer defence: BEFORE INSERT/UPDATE trigger on horse + syndicator cascade + admin re-verify trigger.*
 - [x] `[OPUS]` Design auth flow: magic link primary, password optional, syndicator vs buyer role separation, session handling in App Router → `docs/auth.md`
-- [ ] `[SONNET]` Implement Supabase auth with magic link + role middleware *(blocked on Supabase project provisioning)*
-- [ ] `[SONNET]` Build `/login`, `/signup`, `/account` shell, role-based redirects *(scaffolding possible now; live auth blocked on provisioning)*
+- [x] `[SONNET]` Implement Supabase auth with magic link + role middleware *(shipped: magic link, /login, /signup, /account, PKCE fix, proxy.ts)*
+- [x] `[SONNET]` Build `/login`, `/signup`, `/account` shell, role-based redirects *(shipped)*
 - [x] `[OPUS]` Design consent model: marketing opt-in, share-with-partners opt-in, granular and revocable. Schema + UI flow → `docs/consent-model.md` + `consent_ledger` table in schema.md §3.16
-- [ ] `[SONNET]` Implement consent management UI in `/account/preferences` *(scaffolding possible now; live writes blocked on provisioning)*
+- [x] `[SONNET]` Implement consent management UI in `/account/preferences` *(shipped)*
 - [x] `[OPUS]` Lead-scoring algorithm spec (recency, viewing depth, enquiry, declared budget, repeat visits) → `docs/db/scoring.md`
 - [ ] `[SONNET]` Implement scoring as a Supabase function or worker, cron-triggered *(blocked on Supabase project provisioning)*
-- [ ] `[SONNET]` Seed dev DB with 30 realistic test horses across 5 fake syndicators (use the rhownership listings as structural reference, not copy) *(blocked on Supabase project provisioning)*
+- [x] `[SONNET]` Seed dev DB with 30 realistic test horses across 5 fake syndicators — `supabase/seed.sql` (idempotent), `scripts/seed.ts` runner, `scripts/elevate-user.ts` role-elevation helper. Syndicator dashboard (`app/syndicator/dashboard/page.tsx`) and admin console (`app/admin/page.tsx`) shipped; role-gate helper at `lib/auth/role.ts`.
 
 ---
 
