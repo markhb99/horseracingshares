@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
-import { H1, Body } from '@/components/typography';
+import Link from 'next/link';
+import { H1, Body, Small } from '@/components/typography';
 import { Button } from '@/components/ui/button';
 import { createServerClient } from '@/lib/supabase/server';
 import { signOut } from '@/lib/auth/actions';
@@ -26,6 +27,13 @@ export default async function AccountPage() {
           <Body className="text-muted-foreground">
             Signed in as {user.email}
           </Body>
+          <Small>
+            Manage your{' '}
+            <Link href="/account/preferences" className="underline underline-offset-4">
+              preferences
+            </Link>
+            .
+          </Small>
         </div>
 
         <form action={signOut}>
