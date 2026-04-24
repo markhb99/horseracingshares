@@ -12,6 +12,7 @@ export type AfslStatus = 'unverified' | 'pending' | 'verified' | 'suspended' | '
 export type HorseStatus = 'draft' | 'pending_review' | 'active' | 'sold' | 'withdrawn';
 export type EnquiryOutcome = 'pending' | 'contacted' | 'share_purchased' | 'rejected' | 'no_response';
 export type SyndicatorTier = 'basic' | 'premium' | 'platinum' | 'partner';
+export type SearchFrequency = 'off' | 'daily' | 'weekly';
 
 export interface Database {
   public: {
@@ -205,6 +206,30 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['enquiry']['Row']>;
         Relationships: [];
       };
+      saved_search: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          filter_json: Record<string, unknown>;
+          frequency: SearchFrequency;
+          last_sent_at: string | null;
+          last_match_count: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          filter_json: Record<string, unknown>;
+          frequency: SearchFrequency;
+          last_sent_at?: string | null;
+          last_match_count?: number;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['saved_search']['Row']>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -214,6 +239,7 @@ export interface Database {
       horse_status: HorseStatus;
       enquiry_outcome: EnquiryOutcome;
       syndicator_tier: SyndicatorTier;
+      search_frequency: SearchFrequency;
     };
   };
 }
