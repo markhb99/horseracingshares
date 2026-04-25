@@ -311,7 +311,7 @@ async function processBatch(
         await sql`
           UPDATE search_outbox
              SET failed_at = now(), error_message = ${errorMsg}
-           WHERE id = ANY(${sql.array(failedOutboxIds)})
+           WHERE id = ANY(${failedOutboxIds})
         `
       }
     }
@@ -336,7 +336,7 @@ async function processBatch(
       await sql`
         UPDATE search_outbox
            SET failed_at = now(), error_message = ${errorMsg}
-         WHERE id = ANY(${sql.array(ids)})
+         WHERE id = ANY(${ids})
       `
     }
   }
@@ -347,7 +347,7 @@ async function processBatch(
     await sql`
       UPDATE search_outbox
          SET processed_at = now()
-       WHERE id = ANY(${sql.array(successIds)})
+       WHERE id = ANY(${successIds})
     `
     lastProcessedAt = new Date().toISOString()
   }
