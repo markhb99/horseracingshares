@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/index-search",
-      "schedule": "* * * * *"
+      "schedule": "0 1 * * *"
     },
     {
       "path": "/api/cron/saved-search-digest?cadence=daily",
