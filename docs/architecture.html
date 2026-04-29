@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Horse Racing Shares — Production Architecture</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #eef0f4;
+      color: #1a1a2e;
+      padding: 40px 20px;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #0f2b5b 0%, #1a4a8a 60%, #1e5fa8 100%);
+      color: #fff;
+      padding: 44px 52px 36px;
+    }
+    .header-top { display: flex; align-items: flex-start; justify-content: space-between; }
+    .header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; }
+    .header p  { margin-top: 6px; opacity: 0.75; font-size: 14px; }
+    .badges    { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
+    .badge {
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+    }
+    .logo-area { text-align: right; opacity: 0.5; font-size: 11px; }
+
+    /* ── Print button ── */
+    .print-bar {
+      background: #f0f4ff;
+      border-bottom: 1px solid #dde3f0;
+      padding: 14px 52px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .print-btn {
+      padding: 9px 28px;
+      background: #0f2b5b;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.2px;
+    }
+    .print-btn:hover { background: #1a4a8a; }
+    .print-hint { font-size: 12px; color: #666; }
+
+    /* ── Content ── */
+    .content { padding: 44px 52px; }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f2b5b;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e2e8f4;
+    }
+
+    /* ── Diagram ── */
+    .diagram-wrap {
+      background: #f7f9ff;
+      border: 1px solid #dde3f0;
+      border-radius: 10px;
+      padding: 32px 24px;
+      margin-bottom: 44px;
+      overflow-x: auto;
+      text-align: center;
+    }
+    .diagram-wrap .mermaid { display: inline-block; }
+
+    /* ── Connection legend cards ── */
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 44px;
+    }
+    .legend-card {
+      background: #f7f9ff;
+      border: 1px solid #dde3f0;
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+    .legend-card h4 {
+      font-size: 12px;
+      font-weight: 800;
+      color: #0f2b5b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+    .legend-card ul { list-style: none; }
+    .legend-card ul li {
+      font-size: 12px;
+      color: #444;
+      padding: 3px 0;
+      padding-left: 14px;
+      position: relative;
+    }
+    .legend-card ul li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: #1a4a8a;
+      font-weight: 700;
+    }
+
+    /* ── Tables ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 44px;
+      font-size: 13px;
+    }
+    th {
+      background: #0f2b5b;
+      color: #fff;
+      padding: 11px 14px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 0.3px;
+    }
+    th:first-child { border-radius: 0; }
+    td {
+      padding: 11px 14px;
+      border-bottom: 1px solid #eef0f4;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tr:nth-child(even) td { background: #f7f9ff; }
+    tr:last-child td { border-bottom: none; }
+    .money { font-weight: 700; color: #0f2b5b; }
+    .free  { font-weight: 700; color: #15803d; }
+    .total-row td {
+      background: #0f2b5b !important;
+      color: #fff !important;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    /* ── Data flow timeline ── */
+    .flow-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-bottom: 44px;
+    }
+    .flow-card {
+      background: #f7f9ff;
+      border: 1px solid #dde3f0;
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .flow-card h4 {
+      font-size: 12px;
+      font-weight: 800;
+      color: #0f2b5b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 12px;
+      color: #444;
+      padding: 3px 0;
+    }
+    .step-num {
+      background: #0f2b5b;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      background: #f7f9ff;
+      border-top: 1px solid #dde3f0;
+      padding: 20px 52px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #888;
+    }
+
+    /* ── Print ── */
+    @media print {
+      body { background: #fff; padding: 0; }
+      .page { box-shadow: none; border-radius: 0; max-width: 100%; }
+      .print-bar { display: none; }
+      .content { padding: 24px 32px; }
+      .header { padding: 28px 32px 22px; }
+      .footer { padding: 14px 32px; }
+      .legend { grid-template-columns: repeat(3,1fr); }
+      .flow-grid { grid-template-columns: repeat(2,1fr); }
+      @page { size: A3 landscape; margin: 8mm; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <h1>Horse Racing Shares<br>Production Architecture</h1>
+        <p>horseracingshares.com · Powered by Regal Bloodstock</p>
+      </div>
+      <div class="logo-area">CONFIDENTIAL<br>Internal use only</div>
+    </div>
+    <div class="badges">
+      <span class="badge">Next.js 16</span>
+      <span class="badge">Supabase</span>
+      <span class="badge">Typesense</span>
+      <span class="badge">Vercel</span>
+      <span class="badge">Resend + Loops</span>
+      <span class="badge">Stripe</span>
+      <span class="badge">PostHog</span>
+    </div>
+  </div>
+
+  <!-- Print bar -->
+  <div class="print-bar">
+    <button class="print-btn" onclick="window.print()">⬇ Save as PDF</button>
+    <span class="print-hint">Click the button → your browser's print dialog opens → choose "Save as PDF" as the destination</span>
+  </div>
+
+  <div class="content">
+
+    <!-- Diagram -->
+    <h2 class="section-title">Architecture Diagram</h2>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+graph LR
+
+  subgraph BROWSER["🌐 Browser / Mobile"]
+    User["👤 Buyer\nor Syndicator"]
+  end
+
+  subgraph VERCEL["▲ VERCEL — horseracingshares.com"]
+    Pages["Server Pages\n/browse · /horse/slug\n/account · /admin\n/handbook · /legal"]
+    APIENQ["POST /api/enquiries\n(buyer enquiry)"]
+    APILIST["POST /api/list/create-checkout\nPOST /api/list/webhook"]
+    APISS["GET·POST /api/saved-searches\nGET /api/saved-searches/unsubscribe"]
+    APIADMIN["POST /api/admin/horses/approve\nPOST /api/admin/horses/reject"]
+    CRON["⏱ Cron Jobs\nDaily 07:00 AEST\nMonday 08:00 AEST"]
+  end
+
+  subgraph SUPA["🗄 SUPABASE (Postgres + Auth + Storage)"]
+    DB["PostgreSQL Database\nhorse · syndicator · trainer\nuser_profile · share_tier\nenquiry · consent_ledger\nsaved_search · lead_score\nsearch_outbox · audit_log"]
+    AUTH["Auth Service\nJWT · Sessions · RLS"]
+    STORE["Storage Bucket\nHorse images · PDS PDFs"]
+  end
+
+  subgraph TYPESENSE["🔍 TYPESENSE (VPS / Fly.io)"]
+    TS["Search Engine\nhorses collection\n~30 fields · faceted"]
+    INDEXER["Indexer Worker\npolls search_outbox\npushes to Typesense"]
+  end
+
+  subgraph EMAILSVC["✉ EMAIL"]
+    RESEND["Resend\nTransactional"]
+    LOOPS["Loops\nMarketing + Lead outreach"]
+  end
+
+  STRIPE["💳 STRIPE\nCheckout Sessions\nWebhooks"]
+  POSTHOG["📊 POSTHOG\nAnalytics\nSession Replay\nFeature Flags"]
+  MUX["🎥 MUX CDN\nVideo Streaming"]
+  GH["🐙 GITHUB ACTIONS\nCI: lint→type→test→build\nAuto-deploy on push"]
+
+  SYNDINBOX["📬 Syndicator\nInbox"]
+  BUYERINBOX["📬 Buyer\nInbox"]
+
+  User -->|"HTTPS page loads"| Pages
+  User -->|"enquiry form"| APIENQ
+  User -->|"sign in / sign up"| AUTH
+  User -->|"analytics events"| POSTHOG
+  User -->|"video streaming"| MUX
+  User -->|"Stripe.js payment UI"| STRIPE
+
+  Pages -->|"read horses & share tiers"| DB
+  Pages -->|"verify session JWT"| AUTH
+  Pages -->|"image & PDF URLs"| STORE
+  Pages -->|"horse search (SSR)"| TS
+
+  APIENQ -->|"insert enquiry\nupsert user_profile"| DB
+  APIENQ -->|"verify session"| AUTH
+  APIENQ -->|"forward + buyer\nconfirmation email"| RESEND
+  APIENQ -->|"upsert lead profile\n+ score band"| LOOPS
+
+  APILIST -->|"create checkout\nsession"| STRIPE
+  STRIPE -->|"payment confirmed\nwebhook POST"| APILIST
+  APILIST -->|"update subscription\n& payment"| DB
+
+  APISS -->|"read / write\nsaved_search rows"| DB
+  APIADMIN -->|"update horse\nstatus"| DB
+
+  CRON -->|"search new horses\nsince last_sent_at"| TS
+  CRON -->|"send digest emails"| RESEND
+  CRON -->|"advance last_sent_at\nwrite run record"| DB
+
+  DB -->|"AFTER triggers\non horse/share_tier/\nimage/syndicator change"| INDEXER
+  INDEXER -->|"poll + mark\nclaimed/processed"| DB
+  INDEXER -->|"upsert / delete\ndocuments"| TS
+
+  RESEND -->|"enquiry\nnotification"| SYNDINBOX
+  RESEND -->|"confirmation\nwelcome · digest"| BUYERINBOX
+  LOOPS -->|"hot-lead campaigns\n& nurture sequences"| BUYERINBOX
+
+  GH -->|"auto-deploy\non push to main"| VERCEL
+      </div>
+    </div>
+
+    <!-- Key data flows -->
+    <h2 class="section-title">Key Data Flows</h2>
+    <div class="flow-grid">
+
+      <div class="flow-card">
+        <h4>Buyer Enquiry</h4>
+        <div class="flow-step"><span class="step-num">1</span><span>Buyer fills in enquiry form on horse detail page</span></div>
+        <div class="flow-step"><span class="step-num">2</span><span>Vercel API validates input (Zod), checks AFSL gate</span></div>
+        <div class="flow-step"><span class="step-num">3</span><span>Rate-limit check: max 3 per email per horse per 24 h</span></div>
+        <div class="flow-step"><span class="step-num">4</span><span>Enquiry row inserted into Supabase (dedup trigger fires)</span></div>
+        <div class="flow-step"><span class="step-num">5</span><span>Consent ledger entries written</span></div>
+        <div class="flow-step"><span class="step-num">6</span><span>After response: forward email to syndicator via Resend</span></div>
+        <div class="flow-step"><span class="step-num">7</span><span>After response: buyer confirmation email via Resend</span></div>
+        <div class="flow-step"><span class="step-num">8</span><span>Lead score recomputed and upserted to Loops</span></div>
+      </div>
+
+      <div class="flow-card">
+        <h4>Syndicator Lists a Horse</h4>
+        <div class="flow-step"><span class="step-num">1</span><span>Syndicator completes listing form (name, PDS, share tiers)</span></div>
+        <div class="flow-step"><span class="step-num">2</span><span>Vercel API creates Stripe checkout session</span></div>
+        <div class="flow-step"><span class="step-num">3</span><span>Syndicator pays listing fee via Stripe</span></div>
+        <div class="flow-step"><span class="step-num">4</span><span>Stripe fires payment.succeeded webhook to Vercel</span></div>
+        <div class="flow-step"><span class="step-num">5</span><span>Horse row created in Supabase (status: pending_review)</span></div>
+        <div class="flow-step"><span class="step-num">6</span><span>Admin reviews and approves → status: active</span></div>
+        <div class="flow-step"><span class="step-num">7</span><span>DB trigger enqueues upsert into search_outbox</span></div>
+        <div class="flow-step"><span class="step-num">8</span><span>Indexer worker pushes horse document to Typesense</span></div>
+      </div>
+
+      <div class="flow-card">
+        <h4>Buyer Searches for a Horse</h4>
+        <div class="flow-step"><span class="step-num">1</span><span>Buyer visits /browse (URL params carry filters + sort)</span></div>
+        <div class="flow-step"><span class="step-num">2</span><span>Next.js server component reads URL params</span></div>
+        <div class="flow-step"><span class="step-num">3</span><span>Server calls Typesense with filter_by + facet_by</span></div>
+        <div class="flow-step"><span class="step-num">4</span><span>Typesense returns hits + facet counts in &lt; 50 ms</span></div>
+        <div class="flow-step"><span class="step-num">5</span><span>Page renders server-side (SEO-friendly, no loading flash)</span></div>
+        <div class="flow-step"><span class="step-num">6</span><span>Buyer adjusts filters → URL updates → new server render</span></div>
+      </div>
+
+      <div class="flow-card">
+        <h4>Saved Search Digest (Cron)</h4>
+        <div class="flow-step"><span class="step-num">1</span><span>Vercel cron fires daily 07:00 AEST / weekly Monday 08:00</span></div>
+        <div class="flow-step"><span class="step-num">2</span><span>API reads saved_search rows due for this cadence</span></div>
+        <div class="flow-step"><span class="step-num">3</span><span>Checks marketing_email consent per user via Supabase RPC</span></div>
+        <div class="flow-step"><span class="step-num">4</span><span>Typesense searched for horses newer than last_sent_at</span></div>
+        <div class="flow-step"><span class="step-num">5</span><span>Deduplicates matches across multiple saved searches per user</span></div>
+        <div class="flow-step"><span class="step-num">6</span><span>Resend sends one digest email per user (batched)</span></div>
+        <div class="flow-step"><span class="step-num">7</span><span>last_sent_at advanced; saved_search_run row written</span></div>
+      </div>
+
+    </div>
+
+    <!-- Connection reference -->
+    <h2 class="section-title">Service Connection Reference</h2>
+    <div class="legend">
+      <div class="legend-card">
+        <h4>Browser → External</h4>
+        <ul>
+          <li>Vercel — all page loads (HTTPS + CDN)</li>
+          <li>Supabase Auth — sign in, sign up, OAuth</li>
+          <li>PostHog — client-side event tracking</li>
+          <li>Mux — horse promo video streaming</li>
+          <li>Stripe.js — embedded payment UI</li>
+        </ul>
+      </div>
+      <div class="legend-card">
+        <h4>Vercel Server → Services</h4>
+        <ul>
+          <li>Supabase DB — all data reads and writes</li>
+          <li>Supabase Auth — session verification (JWT)</li>
+          <li>Supabase Storage — signed image/PDF URLs</li>
+          <li>Typesense — horse search queries (SSR + cron)</li>
+          <li>Resend — enquiry, confirmation, digest emails</li>
+          <li>Loops — lead profile upserts + campaigns</li>
+          <li>Stripe — checkout creation + webhook verify</li>
+        </ul>
+      </div>
+      <div class="legend-card">
+        <h4>Automated / Background</h4>
+        <ul>
+          <li>Stripe fires webhook to Vercel on payment</li>
+          <li>Supabase DB triggers write to search_outbox</li>
+          <li>Indexer worker polls outbox → pushes to Typesense</li>
+          <li>Vercel crons fire search + email digest daily/weekly</li>
+          <li>GitHub Actions deploys to Vercel on push to main</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Cost table -->
+    <h2 class="section-title">Monthly Cost Estimate</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Purpose</th>
+          <th>Free tier</th>
+          <th>Paid plan</th>
+          <th>Soft launch<br><small style="font-weight:400;opacity:.7">&lt; 500 users</small></th>
+          <th>Growth<br><small style="font-weight:400;opacity:.7">1k–10k leads</small></th>
+          <th>Scale<br><small style="font-weight:400;opacity:.7">10k+ leads</small></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Vercel</strong></td>
+          <td>Web hosting + edge CDN + cron jobs</td>
+          <td>Hobby (no commercial use)</td>
+          <td>Pro $20 / seat / month</td>
+          <td class="money">$20</td>
+          <td class="money">$20</td>
+          <td class="money">$40</td>
+        </tr>
+        <tr>
+          <td><strong>Supabase</strong></td>
+          <td>Database, auth, file storage</td>
+          <td>500 MB DB · 50k users · 1 GB storage</td>
+          <td>Pro $25 / month</td>
+          <td class="money">$25</td>
+          <td class="money">$25</td>
+          <td class="money">$25–75</td>
+        </tr>
+        <tr>
+          <td><strong>Typesense</strong></td>
+          <td>Horse search index (self-hosted)</td>
+          <td>Self-hosted — no vendor fee</td>
+          <td>VPS 1 GB RAM ~$6–10 / month</td>
+          <td class="money">$6</td>
+          <td class="money">$10</td>
+          <td class="money">$20</td>
+        </tr>
+        <tr>
+          <td><strong>Resend</strong></td>
+          <td>Transactional email delivery</td>
+          <td>3,000 emails / month free</td>
+          <td>Pro $20 / month (50k emails)</td>
+          <td class="free">$0</td>
+          <td class="money">$20</td>
+          <td class="money">$20</td>
+        </tr>
+        <tr>
+          <td><strong>Loops</strong></td>
+          <td>Marketing email + lead outreach</td>
+          <td>1,000 contacts free</td>
+          <td>Starter $49 / month (10k contacts)</td>
+          <td class="free">$0</td>
+          <td class="money">$49</td>
+          <td class="money">$49–99</td>
+        </tr>
+        <tr>
+          <td><strong>Stripe</strong></td>
+          <td>Syndicator listing fee payments</td>
+          <td>No monthly fee</td>
+          <td>1.7% + 30¢ per transaction (AUS)</td>
+          <td class="free">$0 base</td>
+          <td class="free">$0 base</td>
+          <td class="free">$0 base</td>
+        </tr>
+        <tr>
+          <td><strong>PostHog</strong></td>
+          <td>Analytics, session replay, feature flags</td>
+          <td>1M events + 5k recordings / month</td>
+          <td>Usage-based above free tier</td>
+          <td class="free">$0</td>
+          <td class="free">$0</td>
+          <td class="money">$0–20</td>
+        </tr>
+        <tr>
+          <td><strong>Mux</strong></td>
+          <td>Horse promo video hosting + CDN</td>
+          <td>10 GB storage · 100 GB delivery free</td>
+          <td>$0.015 / min stored + delivered</td>
+          <td class="free">$0</td>
+          <td class="free">$0</td>
+          <td class="money">$5–20</td>
+        </tr>
+        <tr>
+          <td><strong>GitHub</strong></td>
+          <td>Code hosting + CI/CD pipeline</td>
+          <td>2,000 Actions min / month (private repo)</td>
+          <td>Team $4 / user / month</td>
+          <td class="free">$0</td>
+          <td class="free">$0</td>
+          <td class="free">$0</td>
+        </tr>
+        <tr>
+          <td><strong>Domain</strong></td>
+          <td>horseracingshares.com (owned)</td>
+          <td>—</td>
+          <td>~$15 / year renewal</td>
+          <td class="money">$1.25</td>
+          <td class="money">$1.25</td>
+          <td class="money">$1.25</td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="4"><strong>TOTAL / month</strong></td>
+          <td><strong>~$52</strong></td>
+          <td><strong>~$125</strong></td>
+          <td><strong>~$230</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Stack table -->
+    <h2 class="section-title">Technology Stack</h2>
+    <table>
+      <thead>
+        <tr><th>Layer</th><th>Technology</th><th>Reason for choice</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Frontend</strong></td><td>Next.js 16 · React 19 · TypeScript</td><td>Server components for SEO-friendly horse listings; zero client JS unless interactive</td></tr>
+        <tr><td><strong>Styling</strong></td><td>Tailwind v4 · shadcn/ui · Radix primitives</td><td>Rapid UI development with accessible, unstyled components</td></tr>
+        <tr><td><strong>Database</strong></td><td>Supabase (PostgreSQL + Row Level Security)</td><td>RLS enforces compliance rules at the database layer — not just application code</td></tr>
+        <tr><td><strong>Auth</strong></td><td>Supabase Auth (JWT + SSR cookies)</td><td>Native integration with Postgres RLS; supports OAuth, magic link, email/password</td></tr>
+        <tr><td><strong>Search</strong></td><td>Typesense (self-hosted)</td><td>Faceted search with typo tolerance; no per-query cost; sub-50 ms responses</td></tr>
+        <tr><td><strong>Transactional email</strong></td><td>Resend + React Email</td><td>High deliverability; templates written as React components alongside the app</td></tr>
+        <tr><td><strong>Marketing email</strong></td><td>Loops</td><td>Audience segmentation + automation; syncs lead score bands for hot-lead outreach</td></tr>
+        <tr><td><strong>Payments</strong></td><td>Stripe</td><td>Listing fees only — share purchases never flow through the platform (compliance)</td></tr>
+        <tr><td><strong>Analytics</strong></td><td>PostHog</td><td>Self-hostable, generous free tier; session replay aids UX debugging; feature flags</td></tr>
+        <tr><td><strong>Video</strong></td><td>Mux</td><td>Adaptive bitrate streaming for horse promo videos; simple upload API</td></tr>
+        <tr><td><strong>Hosting</strong></td><td>Vercel</td><td>Zero-config Next.js deploy; global edge CDN; built-in cron scheduler</td></tr>
+        <tr><td><strong>CI / CD</strong></td><td>GitHub Actions</td><td>Lint → typecheck → test (Vitest) → build on every push; auto-deploy on merge to main</td></tr>
+      </tbody>
+    </table>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>Horse Racing Shares · Regal Bloodstock · Confidential — Internal use only</span>
+    <span>Architecture document · April 2026</span>
+  </div>
+
+</div>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    flowchart: { curve: 'basis', padding: 24, nodeSpacing: 50, rankSpacing: 60 },
+    themeVariables: {
+      primaryColor: '#1a4a8a',
+      primaryTextColor: '#ffffff',
+      primaryBorderColor: '#0f2b5b',
+      lineColor: '#4a7fc1',
+      secondaryColor: '#e8f0ff',
+      tertiaryColor: '#f7f9ff'
+    }
+  });
+</script>
+</body>
+</html>

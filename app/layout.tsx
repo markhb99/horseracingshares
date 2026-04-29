@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
+import { HeaderWrapper } from "@/components/layout/HeaderWrapper";
+import { Footer } from "@/components/layout/Footer";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -49,7 +51,11 @@ export default function RootLayout({
       )}
     >
       <body className="min-h-full flex flex-col">
-        {children}
+        <HeaderWrapper />
+        <div className="flex flex-1 flex-col">
+          {children}
+        </div>
+        <Footer />
         <Toaster />
       </body>
     </html>

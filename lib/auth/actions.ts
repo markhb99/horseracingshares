@@ -12,6 +12,16 @@ const magicLinkSchema = z.object({
   next: z.string().startsWith('/').optional(),
 });
 
+const passwordSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+  next: z.string().startsWith('/').optional(),
+});
+
+const resetSchema = z.object({
+  email: z.string().email(),
+});
+
 // ─── Actions ─────────────────────────────────────────────────────────────────
 
 /**
@@ -46,6 +56,43 @@ export async function sendMagicLink(input: unknown): Promise<{ ok: true }> {
 
   if (error) throw new Error(error.message);
 
+  return { ok: true };
+}
+
+/**
+ * Sign in with email + password.
+ * Returns the landing path so the caller can perform a client-side push.
+ */
+export async function signInWithPassword(input: unknown): Promise<{ ok: true; next: string }> {
+  const { email, password, next } = passwordSchema.parse(input);
+
+  const supabase = await createServerClient();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw new Error(error.message);
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Session not established');
+
+  const { ensureUserProfile, resolveLandingPath } = await import('@/lib/auth/profile');
+  const profile = await ensureUserProfile(user.id);
+  const landing = resolveLandingPath(profile, next);
+
+  return { ok: true, next: landing };
+}
+
+/**
+ * Send a password reset email to the given address.
+ */
+export async function sendPasswordResetEmail(input: unknown): Promise<{ ok: true }> {
+  const { email } = resetSchema.parse(input);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (!siteUrl) throw new Error('NEXT_PUBLIC_SITE_URL not configured');
+
+  const supabase = await createServerClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${siteUrl}/auth/reset`,
+  });
+  if (error) throw new Error(error.message);
   return { ok: true };
 }
 

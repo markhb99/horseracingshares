@@ -70,6 +70,17 @@ async function stubAuthSchema(db: PGlite): Promise<void> {
     -- auth.uid() stub — returns NULL (no session in test context).
     CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid
     LANGUAGE sql STABLE AS $$ SELECT NULL::uuid $$;
+
+    -- Supabase roles referenced by RLS policies — pglite doesn't create these.
+    DO $$ BEGIN
+      CREATE ROLE authenticated NOINHERIT;
+    EXCEPTION WHEN duplicate_object THEN NULL; END; $$;
+    DO $$ BEGIN
+      CREATE ROLE anon NOINHERIT;
+    EXCEPTION WHEN duplicate_object THEN NULL; END; $$;
+    DO $$ BEGIN
+      CREATE ROLE service_role NOINHERIT;
+    EXCEPTION WHEN duplicate_object THEN NULL; END; $$;
   `);
 }
 

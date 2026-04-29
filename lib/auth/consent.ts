@@ -5,6 +5,7 @@
  */
 
 import { createServerClient } from '@/lib/supabase/server';
+import { createServiceClient } from '@/lib/supabase/service';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -108,5 +109,33 @@ export async function recordConsent(
     throw new Error(`record_consent RPC failed: ${error.message}`);
   }
 
+  return data as string;
+}
+
+/**
+ * Service-role variant of recordConsent.
+ * Used in API routes where we have a userId but no user session cookie
+ * (e.g. enquiry form submitted by a guest whose profile we just created).
+ * Bypasses RLS — only call from server-side API routes.
+ */
+export async function recordConsentAsService(
+  userId: string,
+  consentType: ConsentType,
+  granted: boolean,
+  source: string,
+  ip?: string | null,
+  userAgent?: string | null,
+): Promise<string> {
+  const supabase = createServiceClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any).rpc('record_consent', {
+    p_user_id: userId,
+    p_consent_type: consentType,
+    p_granted: granted,
+    p_source: source,
+    p_ip: ip ?? null,
+    p_user_agent: userAgent ?? null,
+  });
+  if (error) throw new Error(`record_consent (service) RPC failed: ${error.message}`);
   return data as string;
 }

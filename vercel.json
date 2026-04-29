@@ -1,0 +1,20 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/index-search",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/saved-search-digest?cadence=daily",
+      "schedule": "0 21 * * *"
+    },
+    {
+      "path": "/api/cron/saved-search-digest?cadence=weekly",
+      "schedule": "0 22 * * 0"
+    },
+    {
+      "path": "/api/cron/recompute-scores",
+      "schedule": "0 2 * * *"
+    }
+  ]
+}

@@ -17,6 +17,7 @@ import { HorseshoeU } from '@/components/icons';
 import { SireDam, Caption, Small } from '@/components/typography';
 import { Button } from '@/components/ui/button';
 import { ShareStatusLine } from '@/components/horse/ShareStatusLine';
+import { WishlistButton } from '@/components/account/WishlistButton';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -43,6 +44,10 @@ export interface HorseCardHorse {
 export interface HorseCardProps {
   variant?: 'standard' | 'editorial' | 'compact' | 'sold';
   horse: HorseCardHorse;
+  /** Horse UUID — enables the WishlistButton overlay when provided */
+  horseId?: string;
+  initialWishlisted?: boolean;
+  /** Legacy save toggle (used when horseId is not provided) */
   isSaved?: boolean;
   onToggleSave?: () => void;
 }
@@ -84,6 +89,13 @@ function IncentiveBadges({ schemes }: { schemes: string[] }) {
 
 // ─── ImagePlaceholder ────────────────────────────────────────────
 
+function storagePathToUrl(path: string | null): string | null {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
+  return `${base}/storage/v1/object/public/horse-photos/${path}`;
+}
+
 function ImagePlaceholder({
   heroImagePath,
   aspectClass,
@@ -93,17 +105,29 @@ function ImagePlaceholder({
   aspectClass: string;
   grayscale?: boolean;
 }) {
+  const imageUrl = storagePathToUrl(heroImagePath);
   return (
     <div
       className={cn(
-        'bg-muted flex items-center justify-center overflow-hidden',
+        'overflow-hidden bg-muted',
         aspectClass,
         grayscale && 'grayscale',
       )}
     >
-      <Caption className="text-muted-foreground px-4 text-center">
-        {heroImagePath ?? 'Image pending'}
-      </Caption>
+      {imageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={imageUrl}
+          alt=""
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center">
+          <Caption className="text-muted-foreground px-4 text-center">
+            No photo yet
+          </Caption>
+        </div>
+      )}
     </div>
   );
 }
@@ -209,11 +233,15 @@ function PedigreeBlock({ horse }: { horse: HorseCardHorse }) {
 
 function StandardCard({
   horse,
+  horseId,
+  initialWishlisted,
   isSaved,
   onToggleSave,
   isSold,
 }: {
   horse: HorseCardHorse;
+  horseId?: string;
+  initialWishlisted?: boolean;
   isSaved: boolean;
   onToggleSave?: () => void;
   isSold: boolean;
@@ -257,9 +285,13 @@ function StandardCard({
           </div>
         )}
 
-        {/* Save button — top-right */}
+        {/* Save / Wishlist button — top-right */}
         <div className="absolute right-2 top-2">
-          <SaveButton isSaved={isSaved} onToggleSave={onToggleSave} />
+          {horseId ? (
+            <WishlistButton horseId={horseId} initialWishlisted={initialWishlisted} />
+          ) : (
+            <SaveButton isSaved={isSaved} onToggleSave={onToggleSave} />
+          )}
         </div>
       </div>
 
@@ -300,10 +332,14 @@ function StandardCard({
 
 function EditorialCard({
   horse,
+  horseId,
+  initialWishlisted,
   isSaved,
   onToggleSave,
 }: {
   horse: HorseCardHorse;
+  horseId?: string;
+  initialWishlisted?: boolean;
   isSaved: boolean;
   onToggleSave?: () => void;
 }) {
@@ -330,7 +366,11 @@ function EditorialCard({
         )}
 
         <div className="absolute right-2 top-2">
-          <SaveButton isSaved={isSaved} onToggleSave={onToggleSave} />
+          {horseId ? (
+            <WishlistButton horseId={horseId} initialWishlisted={initialWishlisted} />
+          ) : (
+            <SaveButton isSaved={isSaved} onToggleSave={onToggleSave} />
+          )}
         </div>
       </div>
 
@@ -421,6 +461,8 @@ function CompactCard({ horse }: { horse: HorseCardHorse }) {
 export function HorseCard({
   variant = 'standard',
   horse,
+  horseId,
+  initialWishlisted,
   isSaved = false,
   onToggleSave,
 }: HorseCardProps) {
@@ -432,6 +474,8 @@ export function HorseCard({
     return (
       <EditorialCard
         horse={horse}
+        horseId={horseId}
+        initialWishlisted={initialWishlisted}
         isSaved={isSaved}
         onToggleSave={onToggleSave}
       />
@@ -442,6 +486,8 @@ export function HorseCard({
   return (
     <StandardCard
       horse={horse}
+      horseId={horseId}
+      initialWishlisted={initialWishlisted}
       isSaved={isSaved}
       onToggleSave={onToggleSave}
       isSold={variant === 'sold'}

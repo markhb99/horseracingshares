@@ -9,7 +9,7 @@
 
 export type UserRole = 'buyer' | 'syndicator' | 'operator';
 export type AfslStatus = 'unverified' | 'pending' | 'verified' | 'suspended' | 'expired';
-export type HorseStatus = 'draft' | 'pending_review' | 'active' | 'sold' | 'withdrawn';
+export type HorseStatus = 'draft' | 'pending_review' | 'submitted' | 'active' | 'sold' | 'withdrawn';
 export type EnquiryOutcome = 'pending' | 'contacted' | 'share_purchased' | 'rejected' | 'no_response';
 export type SyndicatorTier = 'basic' | 'premium' | 'platinum' | 'partner';
 export type SearchFrequency = 'off' | 'daily' | 'weekly';
@@ -36,6 +36,7 @@ export interface Database {
           created_at: string;
           updated_at: string;
           deleted_at: string | null;
+          welcome_sent_at: string | null;
         };
         Insert: {
           id: string;
@@ -55,6 +56,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
           deleted_at?: string | null;
+          welcome_sent_at?: string | null;
         };
         Update: {
           id?: string;
@@ -74,6 +76,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
           deleted_at?: string | null;
+          welcome_sent_at?: string | null;
         };
         Relationships: [];
       };
@@ -94,6 +97,8 @@ export interface Database {
           contact_email: string;
           contact_phone: string;
           website_url: string | null;
+          logo_url: string | null;
+          location_state: string | null;
           about: string | null;
           is_regal_owned: boolean;
           created_at: string;
@@ -108,6 +113,26 @@ export interface Database {
           contact_phone: string;
         };
         Update: Partial<Database['public']['Tables']['syndicator']['Row']>;
+        Relationships: [];
+      };
+      trainer: {
+        Row: {
+          id: string;
+          slug: string;
+          name: string;
+          stable_name: string | null;
+          state: string | null;
+          location: string | null;
+          website_url: string | null;
+          about: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database['public']['Tables']['trainer']['Row']> & {
+          slug: string;
+          name: string;
+        };
+        Update: Partial<Database['public']['Tables']['trainer']['Row']>;
         Relationships: [];
       };
       syndicator_user: {
@@ -136,6 +161,7 @@ export interface Database {
           sire: string;
           dam: string;
           dam_sire: string | null;
+          pedigree_json: Record<string, unknown> | null;
           foal_date: string | null;
           sex: string;
           colour: string | null;
@@ -154,6 +180,13 @@ export interface Database {
           view_count: number;
           enquiry_count: number;
           wishlist_count: number;
+          listing_tier_code: string | null;
+          stripe_payment_id: string | null;
+          submitted_at: string | null;
+          approved_at: string | null;
+          approved_by: string | null;
+          rejection_reason: string | null;
+          share_listings: Array<{ pct: number; price_cents: number; available: boolean }> | null;
           created_at: string;
           updated_at: string;
           deleted_at: string | null;
@@ -190,6 +223,9 @@ export interface Database {
           consent_share_at_submit: boolean;
           created_at: string;
           forwarded_to_syndicator_at: string | null;
+          status: string;
+          forward_failed_at: string | null;
+          forward_error: string | null;
           outcome: EnquiryOutcome;
           outcome_updated_at: string | null;
           outcome_updated_by: string | null;
@@ -228,6 +264,46 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database['public']['Tables']['saved_search']['Row']>;
+        Relationships: [];
+      };
+      wishlist: {
+        Row: {
+          id: string;
+          user_id: string;
+          horse_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          horse_id: string;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['wishlist']['Row']>;
+        Relationships: [];
+      };
+      saved_search_run: {
+        Row: {
+          id: string;
+          user_id: string;
+          saved_search_ids: string[];
+          cadence: SearchFrequency;
+          sent_email: boolean;
+          email_message_id: string | null;
+          match_count: number;
+          ran_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          saved_search_ids: string[];
+          cadence: SearchFrequency;
+          sent_email?: boolean;
+          email_message_id?: string | null;
+          match_count: number;
+          ran_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['saved_search_run']['Row']>;
         Relationships: [];
       };
     };

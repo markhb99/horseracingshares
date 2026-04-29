@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 
-import { sendMagicLink } from '@/lib/auth/actions';
+import { sendMagicLink, signInWithPassword } from '@/lib/auth/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -35,7 +36,8 @@ interface LoginFormProps {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function LoginForm({ next }: LoginFormProps) {
-  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+  const [usePassword, setUsePassword] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   const {
@@ -48,9 +50,19 @@ export function LoginForm({ next }: LoginFormProps) {
 
   async function onSubmit(values: FormValues) {
     try {
-      await sendMagicLink({ email: values.email, next });
-      setSubmitted(true);
-      toast.success('Check your inbox — a sign-in link is on its way.');
+      if (usePassword && values.password) {
+        const result = await signInWithPassword({
+          email: values.email,
+          password: values.password,
+          next,
+        });
+        router.push(result.next);
+        router.refresh();
+      } else {
+        await sendMagicLink({ email: values.email, next });
+        setSubmitted(true);
+        toast.success('Check your inbox — a sign-in link is on its way.');
+      }
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Something went wrong. Please try again.';
@@ -84,13 +96,11 @@ export function LoginForm({ next }: LoginFormProps) {
           aria-invalid={!!errors.email}
           {...register('email')}
         />
-        {errors.email && (
-          <FieldError errors={[errors.email]} />
-        )}
+        {errors.email && <FieldError errors={[errors.email]} />}
       </Field>
 
-      {/* Progressive disclosure: password field */}
-      {showPassword && (
+      {/* Password field (shown when usePassword is true) */}
+      {usePassword && (
         <Field data-invalid={!!errors.password || undefined}>
           <FieldLabel htmlFor="password">Password</FieldLabel>
           <Input
@@ -101,11 +111,14 @@ export function LoginForm({ next }: LoginFormProps) {
             {...register('password')}
           />
           <FieldDescription>
-            No password set? Use the magic link instead.
+            <a
+              href="/forgot-password"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              Forgot password?
+            </a>
           </FieldDescription>
-          {errors.password && (
-            <FieldError errors={[errors.password]} />
-          )}
+          {errors.password && <FieldError errors={[errors.password]} />}
         </Field>
       )}
 
@@ -116,16 +129,16 @@ export function LoginForm({ next }: LoginFormProps) {
         className="w-full"
         disabled={isSubmitting}
       >
-        {isSubmitting ? 'Sending…' : 'Send magic link'}
+        {isSubmitting ? 'Signing in…' : usePassword ? 'Sign in' : 'Send magic link'}
       </Button>
 
-      {/* Toggle password */}
+      {/* Toggle auth method */}
       <button
         type="button"
-        onClick={() => setShowPassword((v) => !v)}
+        onClick={() => setUsePassword((v) => !v)}
         className="text-sm text-muted-foreground underline-offset-4 hover:underline self-center"
       >
-        {showPassword ? 'Use magic link instead' : 'Use password instead'}
+        {usePassword ? 'Use magic link instead' : 'Sign in with password instead'}
       </button>
     </form>
   );
