@@ -139,7 +139,8 @@ export default async function HomePage() {
     const supabase = await createServerClient();
 
     const [featuredResult, searchResult] = await Promise.allSettled([
-      supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any)
         .from('horse')
         .select(
           'id,slug,name,sire,dam,dam_sire,sex,foal_date,location_state,description,horse_image(storage_path,is_hero)',

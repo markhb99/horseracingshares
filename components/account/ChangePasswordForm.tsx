@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { createBrowserClient } from '@/lib/supabase/browser';
+import { createBrowserSupabaseClient } from '@/lib/supabase/browser';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,7 +26,7 @@ export function ChangePasswordForm() {
     }
 
     setStatus('loading');
-    const supabase = createBrowserClient();
+    const supabase = createBrowserSupabaseClient();
     const { error } = await supabase.auth.updateUser({ password: newPassword });
 
     if (error) {

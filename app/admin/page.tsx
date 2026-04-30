@@ -234,12 +234,12 @@ export default async function AdminPage() {
     .limit(200);
 
   // Build syndicator name map (reuse syndicatorsForHorses + pending syndicators)
-  const allSyndicatorIds = [...new Set((allHorseRows ?? []).map((h) => h.syndicator_id))];
+  const allSyndicatorIds = [...new Set((allHorseRows as AllHorseRow[] ?? []).map((h) => h.syndicator_id))];
   const { data: syndicatorsForAll } = allSyndicatorIds.length > 0
     ? await supabase
         .from('syndicator')
         .select('id, name')
-        .in('id', allSyndicatorIds)
+        .in('id', allSyndicatorIds as string[])
     : { data: [] };
   const allSynMap = new Map((syndicatorsForAll ?? []).map((s) => [s.id, s.name]));
 
