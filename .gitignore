@@ -58,3 +58,5 @@ supabase/.temp
 
 # Claude local overrides
 .claude/settings.local.json
+
+.vercel

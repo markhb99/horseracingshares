@@ -145,7 +145,7 @@ export default async function HomePage() {
           'id,slug,name,sire,dam,dam_sire,sex,foal_date,location_state,description,horse_image(storage_path,is_hero)',
         )
         .eq('status', 'active')
-        .order('created_at', { ascending: false })
+        .eq('is_featured', true)
         .limit(1)
         .maybeSingle(),
       searchHorses({ q: '*', perPage: 4, page: 1 }),

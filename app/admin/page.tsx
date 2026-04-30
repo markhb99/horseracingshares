@@ -13,6 +13,8 @@ import type { EnquiryRow } from '@/components/admin/EnquiryTable';
 import { VerifyAfslDialog } from '@/components/admin/VerifyAfslDialog';
 import { HorseManagementTable } from '@/components/admin/HorseManagementTable';
 import type { HorseManagementRow } from '@/components/admin/HorseManagementTable';
+import { FeaturedHorseToggle } from '@/components/admin/FeaturedHorseToggle';
+import type { FeaturedHorseRow } from '@/components/admin/FeaturedHorseToggle';
 import {
   Card,
   CardContent,
@@ -220,11 +222,12 @@ export default async function AdminPage() {
     location_state: string;
     created_at: string;
     syndicator_id: string;
+    is_featured: boolean;
   };
 
   const { data: allHorseRows } = await supabase
     .from('horse')
-    .select('id, slug, name, sire, dam, status, location_state, created_at, syndicator_id')
+    .select('id, slug, name, sire, dam, status, location_state, created_at, syndicator_id, is_featured')
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .limit(200);
@@ -544,6 +547,26 @@ export default async function AdminPage() {
               <Body className="text-muted-foreground">No syndicators yet.</Body>
             )}
           </div>
+        </div>
+
+        {/* ── Featured hero horse ────────────────────────────────────────── */}
+        <div className="flex flex-col gap-4">
+          <div>
+            <H3>Homepage hero horse</H3>
+            <p className="text-sm text-muted-foreground mt-1">The starred horse appears as the hero on the homepage. Only active horses are shown.</p>
+          </div>
+          <FeaturedHorseToggle
+            initialHorses={(allHorseRows as AllHorseRow[] ?? [])
+              .filter((h) => h.status === 'active')
+              .map((h): FeaturedHorseRow => ({
+                id: h.id,
+                name: h.name,
+                sire: h.sire,
+                dam: h.dam,
+                syndicator_name: allSynMap.get(h.syndicator_id) ?? '—',
+                is_featured: h.is_featured,
+              }))}
+          />
         </div>
 
         {/* ── Horse management ───────────────────────────────────────────── */}
