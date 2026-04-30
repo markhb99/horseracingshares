@@ -6,6 +6,7 @@ import { getCurrentConsent, ALL_CONSENT_TYPES } from '@/lib/auth/consent';
 import { H1, H2, H3, Body, Small, Caption, SireDam } from '@/components/typography';
 import { Button } from '@/components/ui/button';
 import ConsentToggles, { type InitialConsent } from '@/components/account/ConsentToggles';
+import { ChangePasswordForm } from '@/components/account/ChangePasswordForm';
 import { signOut } from '@/lib/auth/actions';
 import { deleteSavedSearch, removeFromWishlist } from '@/app/account/actions';
 import { cn } from '@/lib/utils';
@@ -14,13 +15,14 @@ export const metadata: Metadata = { title: 'My account' };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Tab = 'saved-searches' | 'wishlist' | 'enquiries' | 'preferences';
+type Tab = 'saved-searches' | 'wishlist' | 'enquiries' | 'preferences' | 'security';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'saved-searches', label: 'Saved searches' },
   { id: 'wishlist', label: 'Wishlist' },
   { id: 'enquiries', label: 'Enquiries' },
   { id: 'preferences', label: 'Preferences' },
+  { id: 'security', label: 'Security' },
 ];
 
 interface ShareListing {
@@ -402,6 +404,13 @@ export default async function AccountPage({
           <>
             <H2 className="mb-6">Preferences</H2>
             <PreferencesTab userId={user.id} />
+          </>
+        )}
+        {activeTab === 'security' && (
+          <>
+            <H2 className="mb-2">Security</H2>
+            <Body className="text-muted-foreground mb-6">Change your account password.</Body>
+            <ChangePasswordForm />
           </>
         )}
       </div>
