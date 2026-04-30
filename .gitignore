@@ -59,4 +59,8 @@ supabase/.temp
 # Claude local overrides
 .claude/settings.local.json
 
+# Local notes / credential files
+.env.local.website
+.ssh/
+
 .vercel
