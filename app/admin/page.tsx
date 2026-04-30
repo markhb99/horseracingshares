@@ -225,7 +225,8 @@ export default async function AdminPage() {
     is_featured: boolean;
   };
 
-  const { data: allHorseRows } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: allHorseRows } = await (supabase as any)
     .from('horse')
     .select('id, slug, name, sire, dam, status, location_state, created_at, syndicator_id, is_featured')
     .is('deleted_at', null)
